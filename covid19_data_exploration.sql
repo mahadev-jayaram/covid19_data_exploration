@@ -17,7 +17,7 @@ Where continent is not null
 order by 1,2
 
 
---Tableau 1,2
+--Tableau 1
 /*
 ""rows 6 preceding""  is same as ""between 6 preceding and current row""........just a shorthand notation 
 when we have any bound in window frame as current row
@@ -52,7 +52,7 @@ WHERE location = 'India'
 
 
 
---Tableau 3
+--Tableau 2
 -- Countries with Highest Infection Rate compared to Population
 
 Select Location, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
@@ -89,10 +89,14 @@ Where continent is not null
 Group by Location
 order by TotalDeathCount desc
 
+
+
+
+
 ---------------------------------------------------------------------------------------------------
 
 
---Tableau 4
+--Tableau 3
 -- Showing contintents with the highest death count per population
 
 
@@ -103,12 +107,55 @@ Group by continent
 order by TotalDeathCount desc
 
 
---Tableau 5
+--Tableau 4
 
 Select Location, Population, date, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
 From covid..deaths
 Group by  Location, Population, date
 order by PercentPopulationInfected desc
+
+
+
+
+--Tableau 5
+--death rate comparision between 2020 and 2021 for countries with population more then 10 crores
+
+with 
+cte1 as
+(
+	Select Location,  population, (sum(convert(float,new_deaths))/sum(new_cases))*100 as DeathPercentage2020
+	From covid..deaths
+	Where continent is not null and year(date) =2020
+	group by location,population
+
+),
+
+cte1rnk as
+(
+	Select Location,  population,rank() over(order by DeathPercentage2020 desc) as rank2020
+	From cte1
+),
+cte2 as
+(
+	Select Location,  population, (sum(convert(float,new_deaths))/sum(new_cases))*100 as DeathPercentage2021
+	From covid..deaths
+	Where continent is not null and year(date) =2021
+	group by location,population
+),
+cte2rnk as
+(
+	Select Location,  population,rank() over(order by DeathPercentage2021 desc) as rank2021
+	From cte2
+)
+
+select cte1.*,DeathPercentage2021,(DeathPercentage2020-DeathPercentage2021) as Death_Perc_reduction,rank2020,rank2021 
+from cte1,cte2,cte1rnk,cte2rnk
+where 
+	cte1.population >100000000 and
+	cte1.location=cte2.location and
+	cte1.location=cte2rnk.location and
+	cte1.location=cte1rnk.location
+	order by population desc
 
 
 
@@ -178,5 +225,5 @@ select * from vwPercentPopulationVaccinated
 
 /*
 link for Tableau portfolio
-https://public.tableau.com/app/profile/mahadev.jayaram/viz/COVID-19DATAANALYSIS_16406260262990/Dashboard1?publish=yes
+https://public.tableau.com/app/profile/mahadev.jayaram/viz/COVID-19DATAANALYSIS_16406260262990/Dashboard1
 */
