@@ -1,4 +1,4 @@
-# Covid-19 Data Exloaration
+# Covid-19 Data Exploaration
 (Data between 1/22/2020 to 12/13/2021)
 
 
